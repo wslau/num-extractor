@@ -3,137 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4-Digit Extractor</title>
+  <title>Number Extractor</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
+      background: #f8f8f8;
       color: #333;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
       text-align: center;
     }
     textarea {
       width: 100%;
-      height: 120px;
+      height: 150px;
       padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
       border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
       resize: vertical;
-      box-sizing: border-box;
-    }
-    .buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
     }
     button {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
+      margin: 6px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 6px;
+      background: #007bff;
       color: white;
+      cursor: pointer;
     }
-    #btnExtract { background-color: #007bff; }
-    #btnExtract:hover { background-color: #0056b3; }
-
-    #btnClear { background-color: #dc3545; }
-    #btnClear:hover { background-color: #a71d2a; }
-
-    #btnCopy { background-color: #28a745; }
-    #btnCopy:hover { background-color: #1e7e34; }
-
-    pre {
-      margin-top: 20px;
-      padding: 10px;
-      background: white;
+    button:hover { background: #0056b3; }
+    #output {
+      margin-top: 15px;
+      background: #fff;
       border: 1px solid #ccc;
       border-radius: 8px;
+      padding: 10px;
+      min-height: 100px;
+      text-align: left;
       white-space: pre-wrap;
-      font-size: 16px;
-      min-height: 50px;
     }
-
-    /* Toast styling */
     #toast {
       visibility: hidden;
-      min-width: 200px;
-      background-color: #333;
+      min-width: 180px;
+      background: #333;
       color: #fff;
       text-align: center;
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 6px;
+      padding: 10px;
       position: fixed;
+      bottom: 30px;
       left: 50%;
-      bottom: 40px;
       transform: translateX(-50%);
-      font-size: 15px;
       opacity: 0;
-      transition: opacity 0.4s ease, bottom 0.4s ease;
-      z-index: 1000;
+      transition: opacity 0.4s;
     }
-
     #toast.show {
       visibility: visible;
       opacity: 1;
-      bottom: 60px;
     }
   </style>
 </head>
 <body>
-  <h1>4-Digit Extractor</h1>
-  <p>Enter any text, and I’ll extract continuous 4-digit numbers:</p>
-
-  <textarea id="input" placeholder="Type something like: 2345 6789 1234. 4321.. 9876, 1. n g"></textarea>
-
-  <div class="buttons">
-    <button id="btnExtract" onclick="extractDigits()">Extract</button>
-    <button id="btnClear" onclick="clearAll()">Clear</button>
-    <button id="btnCopy" onclick="copyOutput()">Copy</button>
+  <h2>📄 WhatsApp Number Extractor</h2>
+  <textarea id="input" placeholder="Paste your WhatsApp messages here..."></textarea>
+  <div>
+    <button id="extractBtn">Extract</button>
+    <button id="clearBtn">Clear</button>
+    <button id="copyBtn">Copy Output</button>
   </div>
-
-  <pre id="output"></pre>
-
-  <!-- Toast container -->
+  <h3>Output</h3>
+  <div id="output"></div>
   <div id="toast"></div>
 
   <script>
+    console.log("✅ Script loaded");
+
+    // Attach button actions
+    document.getElementById("extractBtn").addEventListener("click", extractDigits);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+    document.getElementById("copyBtn").addEventListener("click", copyOutput);
+
     function extractDigits() {
-      const input = document.getElementById('input').value;
-      const regex = /\d{4}/g;
-      const matches = input.match(regex);
-      const output = matches ? matches.join('\n') : 'No 4-digit sequences found.';
-      document.getElementById('output').textContent = output;
+      console.log("Extract button clicked");
+      const input = document.getElementById("input").value;
+      const lines = input.split(/\r?\n/);
+      let results = [];
+      let started = false;
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+
+        // Start new message when line begins with "["
+        if (trimmed.startsWith("[")) {
+          results.push("#");
+          started = true;
+        }
+
+        // Extract 3+ digit numbers
+        const matches = trimmed.match(/\d{3,}/g);
+        if (matches) {
+          for (const m of matches) results.push(m);
+        }
+      }
+
+      // Remove trailing blank lines or spaces
+      while (results.length && results[results.length - 1].trim() === "") {
+        results.pop();
+      }
+
+      const output = results.length ? results.join("\n") : "No numeric sequences found.";
+      document.getElementById("output").textContent = output;
     }
 
     function clearAll() {
-      document.getElementById('input').value = '';
-      document.getElementById('output').textContent = '';
-      showToast('Cleared!');
+      document.getElementById("input").value = "";
+      document.getElementById("output").textContent = "";
+      showToast("Cleared!");
     }
 
     function copyOutput() {
-      const text = document.getElementById('output').textContent.trim();
-      if (!text) {
-        showToast('Nothing to copy!');
-        return;
-      }
+      const text = document.getElementById("output").textContent.trim();
+      if (!text) return showToast("Nothing to copy!");
       navigator.clipboard.writeText(text)
-        .then(() => showToast('Copied to clipboard!'))
-        .catch(() => showToast('Failed to copy.'));
+        .then(() => showToast("Copied to clipboard!"))
+        .catch(() => showToast("Copy failed."));
     }
 
     function showToast(message) {
-      const toast = document.getElementById('toast');
+      const toast = document.getElementById("toast");
       toast.textContent = message;
-      toast.className = 'show';
-      setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 2000);
+      toast.className = "show";
+      setTimeout(() => toast.className = toast.className.replace("show", ""), 2000);
     }
   </script>
 </body>
